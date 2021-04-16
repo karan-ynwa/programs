@@ -13,3 +13,4 @@ This is a sample file for my GitHub repo. We're learning markdown.
 1. One
 2. Two
 3. Three
+4. Four
