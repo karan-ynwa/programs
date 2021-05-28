@@ -6,7 +6,7 @@ import java.util.Set;
 public class LomgestSubString {
 
 	public static void main(String[] args) {
-		String s =" ";
+		String s ="abcdax";
 		int l=0;
 		int r=0;
 		int max=0;
@@ -25,7 +25,6 @@ public class LomgestSubString {
 				
 			}
 		}
-		
 		System.out.println(max);
 	}
 

@@ -27,7 +27,18 @@ public class FailFastandFailSafe {
 		Iterator<Integer> i=l.iterator();
 		while(i.hasNext()){
 			if(i.next()==3){
-				i.remove();
+				i.remove();	
+			//	l.remove(0); //will throw cme cant operate on list. can be removed using iterator
+			}
+		}
+		for (Integer integer : l) {
+			if(integer==2){
+			//	l.remove(integer); // will throw cme , since foreach creates an iterator internally
+			}
+		}
+		for (int j = 0; j < l.size(); j++) {
+			if(l.get(j)==2){
+				l.remove(j); 
 			}
 		}
 		System.out.println(l);

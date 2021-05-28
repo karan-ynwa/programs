@@ -1,5 +1,6 @@
 package com.java.hackerrank;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,6 +10,7 @@ public class ChocolateBarDiv {
 	public static void main(String[] args) {
 
 		List<Integer> s=Arrays.asList(2,5,1,3,4,4,3,5,1,1,2,1,4,1,3,3,4,2,1);
+		List<Integer> s1=new ArrayList<>();
 		int d = 18;
 		int m = 7;
 		int count=0;

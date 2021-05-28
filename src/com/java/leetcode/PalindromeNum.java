@@ -4,7 +4,7 @@ package com.java.leetcode;
 public class PalindromeNum {
 
 	public static void main(String[] args) {
-		int x=1;
+		int x=121;
 		int num=x;
 		int d=0;
 		int rev=0;
