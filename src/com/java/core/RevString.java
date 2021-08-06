@@ -47,7 +47,7 @@ public class RevString {
 		String rev = sb.toString();
 		int start = 0;
 		for (int i = 0; i < arr.length; i++) 
-		{ ​​​​
+		{
 		System.out.print(rev.substring(start, start + arr[i].length()) + " ");
 		start = start + arr[i].length();
 		}

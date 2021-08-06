@@ -2,10 +2,11 @@ package com.java.mt;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ProdConBlockingQueue {
 
-	private static BlockingQueue<Integer> bq= new ArrayBlockingQueue<>(3);
+	private static BlockingQueue<Integer> bq= new LinkedBlockingQueue<>(3);
 	static int j=-1;
 	public static void main(String[] args)  {
 		Runnable prod =() ->{

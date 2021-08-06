@@ -28,7 +28,7 @@ public class ArrayIntersection {
 		//	a3=binarySearch();
 		}
 		
-		return a3;
+		return a2;
 		
 	}
 

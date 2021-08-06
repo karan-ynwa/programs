@@ -61,7 +61,8 @@ public class ObjectLevelLocks implements Runnable{
         // start() method begining the execution of threads
         // as JVM calls the run() method of thread
         t1.start();
-        t2.start();
         t3.start();
+        t2.start();
+       
     }
 }

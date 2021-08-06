@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import com.sun.glass.ui.View.Capability;
+
 
 public class LRUCache {
-	int capacity=3;
+	static int capacity=2;
 	static Deque<Integer> deq= new LinkedList<>();
 	static Map<Integer,Integer> map= new HashMap<Integer, Integer>();
 	public static void main(String[] args) {
@@ -15,7 +17,7 @@ public class LRUCache {
 	
 		addTocache(1);
 		addTocache(2);
-		addTocache(1);
+		addTocache(3);
 		System.out.println(getFromCache(2));
 		addTocache(3);
 		System.out.println(getFromCache(1));
@@ -36,18 +38,12 @@ public class LRUCache {
 
 	private static void addTocache(Integer i) {
 		
-		if(map.containsKey(i)){
-			deq.remove(i);
-		}
-		else{
-			if(deq.size()==3){
+			if(deq.size()==capacity){
 				map.remove(deq.removeLast());
 			}
 			deq.push(i);
 			map.put(i, i);
 		}
 		
-		
-	}
 
 }
