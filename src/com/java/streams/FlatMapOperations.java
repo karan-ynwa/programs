@@ -54,10 +54,12 @@ public class FlatMapOperations {
 		l.add(or);
 		l.add(or2);
 		
+//		l.stream().flatMap(e ->e.getSet().stream()).forEach(e ->System.out.print(e.getProd().getName()));
 		l.stream().flatMap(e -> e.getSet().stream()).map(OrderLine::getProd)
 		.collect(Collectors.groupingBy(Product::getName,Collectors.counting()))
 		.entrySet().stream().forEach(e -> System.out.println(e.getKey()+" "+e.getValue()));
-	}
+	
+		}
 
 }
 class Order{

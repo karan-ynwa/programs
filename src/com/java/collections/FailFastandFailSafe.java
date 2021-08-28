@@ -17,6 +17,7 @@ public class FailFastandFailSafe {
 		while(it.hasNext()){
 			if(it.next()==1){
 				cMap.put(2, 3);
+				cMap.remove(2);
 			}
 		}
 		System.out.println(cMap);

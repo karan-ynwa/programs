@@ -9,8 +9,16 @@ public class ClassLevelLocks implements Runnable {
     public void run()
     {	
     	synchronized (this) {
-    		System.out.println(
+    		System.out.println("in object level start"+
                     Thread.currentThread().getName());	
+    		try {
+				Thread.currentThread().sleep(2);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		System.out.println("in object level end"+
+                    Thread.currentThread().getName());
 		}
     	
         // Acquire lock on .class reference
@@ -24,6 +32,12 @@ public class ClassLevelLocks implements Runnable {
                 System.out.println(
                     "in block "
                     + Thread.currentThread().getName());
+                try {
+    				Thread.currentThread().sleep(2);
+    			} catch (InterruptedException e) {
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			}
                 System.out.println(
                     "in block "
                     + Thread.currentThread().getName()

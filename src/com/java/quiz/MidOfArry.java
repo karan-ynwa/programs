@@ -1,6 +1,5 @@
 package com.java.quiz;
 
-import java.util.stream.Stream;
 
 public class MidOfArry {
 

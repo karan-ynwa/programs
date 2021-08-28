@@ -18,7 +18,7 @@ public class StackwithMinFunction {
 		s.pop();
 		s.pop();
 		s.pop();
-		s.pop();
+		
 		System.out.println(s.min());
 	}
 
@@ -33,8 +33,7 @@ class SpecialStack extends Stack<Integer> {
 			m.push(i);
 		} else {
 			super.push(i);
-			int j = m.pop();
-			m.push(j);
+			int j = m.peek();
 			if (i < j) {
 				m.push(i);
 			} else {
