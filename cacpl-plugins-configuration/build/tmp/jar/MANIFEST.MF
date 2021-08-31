@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+RELEASE-VERSION: 00.00.00.local
+Build-Date: 2021-01-28 13:37:45+0530
+Name: plcfg
+Commit: e6eb8038ecd3ffb2d8dc29223007b96dc94255d3
+Version: 00.00.00.local
+Build-Jdk: 1.8.0_202 (Oracle Corporation)
+

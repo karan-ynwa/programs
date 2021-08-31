@@ -1,0 +1,63 @@
+buildscript {
+  repositories {
+    maven { url 'https://arm.mo.sw.ericsson.se/artifactory/proj-attpps-external-local/lib/' }
+    maven { url 'https://arm.mo.sw.ericsson.se/artifactory/jcenter/' }
+    maven { url 'http://central.maven.org/maven2/' }
+    mavenLocal()
+  }
+}
+apply plugin: 'jacoco'
+//check if the environment is JENKINS or LOCAL
+def jenkinsHome = System.getenv('JENKINS_HOME')
+def jobpath = new File(buildDir.toString() + "/reports/jacoco")
+if(jenkinsHome)
+  jobpath = new File(System.getenv('JENKINS_HOME') + "/jobs/" + System.getenv('JOB_NAME') + "/builds/reports/jacoco")
+mkdir jobpath
+
+jacoco{
+  toolVersion = "0.8.5"
+}
+
+task instrument(dependsOn: [classes, project.configurations.jacocoAnt]) {
+  inputs.files classes.outputs.files
+  File outputDir = new File(project.buildDir, 'instrumentedClasses')
+  outputs.dir outputDir
+  doFirst {
+    project.delete(outputDir)
+    ant.taskdef(
+      resource: 'org/jacoco/ant/antlib.xml',
+      //classpath: project.configurations.jacocoAnt.asPath,
+      classpath: 'build/jacocoant.jar',
+      uri: 'jacoco'
+    )
+    def instrumented = false
+    if (file(sourceSets.main.java.outputDir).exists()) {
+      def instrumentedClassedDir = "${outputDir}/${sourceSets.main.java}"
+      ant.'jacoco:instrument'(destdir: instrumentedClassedDir) {
+          fileset(dir: sourceSets.main.java.outputDir, includes: '**/*.class')
+      }
+      //Replace the classes dir in the test classpath with the instrumented one
+      sourceSets.test.runtimeClasspath -= files(sourceSets.main.java.outputDir)
+      sourceSets.test.runtimeClasspath += files(instrumentedClassedDir)
+      instrumented = true
+    }
+    if (instrumented) {
+      test.jvmArgs += '-noverify'
+    }
+  }
+}
+
+jacocoTestReport {
+  File jacocoLibDir = file("build/jacocoant.jar")
+  jacocoClasspath = files { jacocoLibDir }
+  reports {
+    xml.enabled true
+    csv.enabled false
+    html {
+      destination file("${jobpath}")
+    }
+  }
+}
+
+test.dependsOn instrument
+test.finalizedBy(project.tasks.jacocoTestReport)

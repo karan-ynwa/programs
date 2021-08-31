@@ -1,0 +1,166 @@
+plugins {
+    id "de.undercouch.download" version "3.2.0"
+}
+import de.undercouch.gradle.tasks.download.Download
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply from: 'jacoco.gradle'
+defaultTasks 'clean', 'build'
+description = """EBI Plugin Configurations"""
+group = 'com.ericsson'
+
+def name = 'plcfg'
+
+def buildGradleVersion = project.getGradle().getGradleVersion()
+def buildNumber = System.getenv("BUILD_NUMBER")
+def gitHash = """git rev-parse HEAD""".execute().text.trim()
+def workingBranch = """git rev-parse --abbrev-ref HEAD""".execute().text.trim()
+def isEmergencyRelease = workingBranch.matches("^ER.*_release") && buildNumber
+def isRelease = workingBranch.equals('release') && buildNumber
+def isIntegration = workingBranch.equals('integrate') && buildNumber
+def isSnapshot = project.hasProperty('snapshot') && buildNumber
+
+def gitTag = """git describe --abbrev=0""".execute().text.trim()
+def (gitName, versionMajor, versionMinor, versionPatch) = gitTag.tokenize('-|\\.')
+version = "${versionMajor}.${versionMinor}"
+
+def integrationExt  = 'int'
+def localExt        = 'local'
+def snapshotExt     = 'snapshot'
+
+def projJVen = System.getProperty('java.vendor')
+def projJVer = System.getProperty('java.version')
+def projJDK = "${projJVer} (${projJVen})"
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ['src/main/java']
+    }
+  }
+  test {
+    java {
+      srcDirs = ['src/test/java'];
+      exclude "com/ericsson/eus/pps/plugins/cfg/suite/AllTestSuite.java"
+    }
+    resources {
+      srcDirs = ['src/test/resources']
+    }
+  }
+}
+
+task setVersion {
+  if ( buildNumber ) {
+    if ( (!gitName.equals(name)) || (versionMajor==null) || (versionMinor==null) || (versionPatch==null) ) {
+      throw new Exception("could not determine version information")
+    }
+    if ( isSnapshot ) {
+      println "  Setting snapshot version ..."
+      version = "${version}.${buildNumber}.${snapshotExt}"
+    }
+    else if ( isEmergencyRelease ) {
+      println "  Setting Emergency Release version ..."
+      version = "${version}.${versionPatch}"
+    }
+    else if ( isRelease ) {
+      println "  Setting release version ..."
+      version = "${version}.0"
+    }
+    else if ( isIntegration ) {
+      println "  Setting integration version ..."
+      version = "${version}.${buildNumber}.${integrationExt}"
+    }
+    else {
+      println "  Setting local version ..."
+      version = "00.00.00.${localExt}"
+    }
+    println "  buildNumber: ${buildNumber}"
+  } else {
+    version = "00.00.00.${localExt}"
+  }
+  println "  Gradle: ${buildGradleVersion}"
+  println "  Build-Jdk: ${projJDK}"
+  println "  Working branch: ${workingBranch}"
+  println "  Git Tag: ${gitTag}"
+  println "  Version: ${version}"
+}
+compileJava.dependsOn setVersion
+
+test {
+  afterTest { TestDescriptor td, TestResult tr ->
+    println "${tr} ${td}"
+  }
+}
+
+task downloadTools(type: Download) {
+  src([
+    'https://arm.mo.sw.ericsson.se/artifactory/proj-attpps-external-local/tools/jacoco/0.8.5/lib/jacocoant.jar'
+  ])
+  dest buildDir
+}
+test.dependsOn downloadTools
+
+jar {
+  baseName = name
+  manifest {
+    attributes('RELEASE-VERSION':version)
+    attributes('Build-Date':new Date().format("yyyy-MM-dd' 'HH:mm:ssZ"))
+    attributes('Build-Jdk':projJDK)
+    attributes('Name':name)
+    attributes('Version':version)
+    attributes('Commit':gitHash)
+  }
+}
+
+task fortify(type: Copy) {
+  into "$buildDir/fortify/libs"
+  from configurations.runtime
+}
+
+task all(dependsOn: build) {
+}
+
+task showMoreHelp {
+  doLast {
+    println "\n ===== ATT PPS Plugins PLCFG Help =====\n"
+    println " To use default tasks, execute 'gradle' or 'gradle clean build'\n"
+    println " To build without executing Junit tests: 'gradle -x test' or 'gradle clean build -x test'\n"
+    println " All build artifacts are located in the build/ directory:"
+    println "   jar file location: build/libs/${name}-${version}.tar"
+  }
+}
+help.finalizedBy showMoreHelp
+
+wrapper {
+  gradleVersion = '5.6.4'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+  // Check Artifactory repositories ...
+  maven { url 'https://arm.mo.sw.ericsson.se/artifactory/proj-attpps-release-local/lib/' }
+  maven { url 'https://arm.mo.sw.ericsson.se/artifactory/proj-attpps-dev-local/lib/' }
+  maven { url 'https://arm.mo.sw.ericsson.se/artifactory/proj-attpps-staging-local/lib/' }
+  maven { url 'https://repo.maven.apache.org/maven2' }
+  maven { url 'https://arm.mo.sw.ericsson.se/artifactory/jcenter/' }
+  maven { url 'https://arm.mo.sw.ericsson.se/artifactory/proj-attpps-external-local/lib/' }
+}
+
+dependencies {
+  testRuntime "org.slf4j:slf4j-api:1.7.10"
+  compile (
+    // Ericsson created jars
+
+    // 3rd party jars
+    'commons-logging:commons-logging:1.2.9',
+    'junit:junit:4.12',
+    'org.assertj:assertj-core:3.8.0',
+    'org.mockito:mockito-core:2.8.47',
+    'org.powermock:powermock-api-mockito2:1.7.0',
+    'org.powermock:powermock-module-junit4:1.7.0',
+  );
+}

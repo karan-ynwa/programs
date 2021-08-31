@@ -1,0 +1,73 @@
+#!groovy​
+
+node{
+timestamps {
+
+currentBuild.result = 'SUCCESS'
+
+println "=====> JOB SETUP"
+def jobEnv = [
+  APP : "plcfg",
+  isApp : false,
+  GIT_REPO : "cacpl-plugins-configuration",
+  artifactSuffix : ".jar",
+  flowdockHashtag : "#ebi_plugins_cfg_build",
+  sonar : [
+    projectKey : "ebi:plcfg",
+    projectName : "plcfg",
+    sources : "src/main/java",
+    tests : "src/test/java"
+  ],
+  fortify : [
+    CP : "build/fortify/libs/*.jar",
+    SRC : "src/main/java/**/*.java"
+  ]
+]
+jobEnv.USER_EMAIL = params?.USER_EMAIL?.trim()
+def GERRIT_REFNAME = params?.GERRIT_REFNAME?.trim()
+if (GERRIT_REFNAME) {
+  println "  using GERRIT TRIGGER to run job ..."
+  jobEnv.GIT_BRANCH="${GERRIT_REFNAME}"
+  jobEnv.REPOS = [ "cacpl-plugins-configuration":"${GERRIT_REFNAME}" ]
+  jobEnv.BUILD_ARGS=""
+} else {
+  println "  using SNAPSHOT to run job ..."
+  jobEnv.GIT_BRANCH="${BRANCH}"
+  jobEnv.REPOS = [ "cacpl-plugins-configuration":"${BRANCH}" ]
+  jobEnv.BUILD_ARGS="-Psnapshot"
+}
+def RUN_TESTS=params?.RUN_TESTS
+if (!RUN_TESTS) {
+  jobEnv.BUILD_ARGS="${jobEnv.BUILD_ARGS} -x test"
+}
+println "GIT_REPO=${jobEnv.GIT_REPO}\nGIT_BRANCH=${jobEnv.GIT_BRANCH}\nBUILD_ARGS=${jobEnv.BUILD_ARGS}"
+
+println "=====> Set to JDK 1.8.0_202 compile environment  "
+env.JAVA_HOME="${tool 'jdk1.8.0_202'}"
+env.PATH="${env.JAVA_HOME}/bin:${env.PATH}"
+sh 'java -version'
+
+jobEnv.server = Artifactory.server "Artifactory_Server"
+jobEnv.buildInfo = Artifactory.newBuildInfo()
+jobEnv.buildInfo.env.capture = true
+
+println "=====> JOB EXECUTION"
+//def attpps = load '/project/scripts/buildApp/buildATTPPSv3.groovy'
+jobEnv.CICD_BRANCH = params?.CICD_BRANCH.trim()
+def attpps = load "/project/${jobEnv.CICD_BRANCH}/buildApp/buildATTPPSv3.groovy"
+try {
+  attpps.init(jobEnv)
+  attpps.cloneSources(jobEnv)
+  attpps.gradleBuild(jobEnv)
+  attpps.sonarQube(jobEnv)
+  attpps.uploadArtifacts(jobEnv)
+}
+catch (err) {
+  echo "ERROR: Caught Exception: ${err}"
+  currentBuild.result = 'FAILURE'
+}
+attpps.postBuild(jobEnv)
+attpps.finish(jobEnv)
+
+} // End timestamps
+} // End node
